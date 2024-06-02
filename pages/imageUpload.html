@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval';">
+
+<head>
+    <title>Profile form</title>
+</head>
+
+<body>
+    <form method="POST" action="/uploads" enctype="multipart/form-data">
+        <div>
+            <label>Upload profile picture</label>
+            <input type="file" name="profile-file" required />
+        </div>
+        <div>
+            <input type="submit" value="Upload" />
+        </div>
+    </form>
+
+</body>
+
+</html>

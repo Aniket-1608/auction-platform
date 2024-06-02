@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>WebSocket Test</title>
+</head>
+
+<body>
+    <ul id="messages"></ul>
+    <form id="form" action="">
+        <input id="item_id" placeholder="Item ID" autocomplete="off" />
+        <input id="user_id" placeholder="User ID" autocomplete="off" />
+        <input id="bid_amount" placeholder="Bid Amount" autocomplete="off" />
+        <button>Place Bid</button>
+    </form>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="./createBid.js"></script>
+    <script>
+        const socket = io();
+
+        document.getElementById('form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const itemId = document.getElementById('item_id').value;
+            const userId = document.getElementById('user_id').value;
+            const bidAmount = document.getElementById('bid_amount').value;
+
+            if (itemId && userId && bidAmount) {
+                const bid = { item_id: itemId, user_id: userId, bid_amount: bidAmount };
+                // Register user after connecting and getting the userId from the user
+                socket.emit('register', userId);
+
+                socket.emit('place bid', bid);
+                submitBid(itemId, userId, bidAmount);
+
+                // Reset form inputs
+                document.getElementById('item_id').value = '';
+                document.getElementById('user_id').value = '';
+                document.getElementById('bid_amount').value = '';
+            }
+        });
+
+
+        socket.on('new bid', (bid) => {
+            const item = document.createElement('li');
+            item.textContent = `New bid on item ${bid.item_id} by user ${bid.user_id}: ${bid.bid_amount}`;
+            messages.appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+
+        //send the notification to the owner of the item.
+        socket.on('notification', (data) => {
+            console.log(data.message); // Display the notification message
+            // You can also use this data to show a notification on the UI
+        });
+
+        socket.on('chat message', (msg) => {
+            const item = document.createElement('li');
+            item.textContent = msg;
+            messages.appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+    </script>
+</body>
+
+</html>

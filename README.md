@@ -187,9 +187,9 @@ Here is a list of the main API endpoints available in this project:
 
   
 
-`GET /api/items/:itemid/bids/`: Get all bids for an item
+`GET /api/items/:itemid/bids`: Get all bids for an item
 
-`POST /api/items/:itemid/bids/`: Place a bid on an item
+`POST /api/items/:itemid/bids`: Place a bid on an item
 
   
 
