@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 // Mocking the database
-jest.mock('../db');
+jest.mock('../services/db');
 
 // Mocking bcrypt
 jest.mock('bcrypt');
@@ -18,19 +18,20 @@ afterAll((done) => {
 });
 
 describe('users Authentication API Endpoints', () => {
-    // Define a valid token and user for the tests
-    const validToken = 'valid-token';
-    const user = { id: 1, username: 'testuser', email: 'test@example.com', _role: 'user', created_at: '2024-06-02' };
-    beforeEach(() => {
-        // Mock the JWT verification to always return the user
-        jwt.verify.mockImplementation((token, secret, callback) => {
-          if (token === validToken) {
-            callback(null, user);
-          } else {
-            callback(new Error('Token is not valid'));
-          }
-        });
+  // Define a valid token and user for the tests
+  const validToken = 'valid-token';
+  const user = { email: 'test@example.com', role: 'admin' };
+  beforeEach(() => {
+    // Mock the JWT verification to always return the user
+    jwt.verify.mockImplementation((token, secret, callback) => {
+      if (token === validToken) {
+        callback(null, user);
+      } else {
+        callback(new Error('Token is not valid'));
+      }
     });
+  });
+
   describe('POST /api/users/register', () => {
     it('should register a new user', async () => {
       const newUser = {
@@ -42,7 +43,9 @@ describe('users Authentication API Endpoints', () => {
 
       // Mock bcrypt.hash to return hashed password
       bcrypt.hash.mockResolvedValue('hashedPassword');
-
+      const username = newUser.username;
+      const email = newUser.email;
+      const role = newUser.role;
       // Mock database query to return user data
       db.query.mockImplementationOnce((query, values, callback) => {
         callback(null, { id: 1, ...newUser });
@@ -53,7 +56,7 @@ describe('users Authentication API Endpoints', () => {
         .send(newUser);
 
       expect(response.status).toBe(201);
-      expect(response.body).toEqual({ id: 1, ...newUser });
+      expect(response.body).toEqual({ id: 1, username, email, role });
     });
 
     it('should handle registration errors', async () => {
@@ -135,6 +138,8 @@ describe('users Authentication API Endpoints', () => {
         created_at: '2024-06-02'
       };
 
+      const mockUserEmail = mockUser.email;
+
       // Mock database query to return user data
       db.query.mockImplementationOnce((query, values, callback) => {
         callback(null, [mockUser]);
@@ -143,8 +148,9 @@ describe('users Authentication API Endpoints', () => {
       const response = await request(app)
         .get('/api/users/profile')
         .set('Authorization', `Bearer ${validToken}`)
-        .send();
+        .send(mockUserEmail);
 
+      // console.log(response.body);
       expect(response.status).toBe(200);
       expect(response.body).toEqual(mockUser);
     });

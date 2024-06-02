@@ -4,7 +4,7 @@ const db = require('../services/db');
 const jwt = require('jsonwebtoken');
 
 // Mocking the database
-jest.mock('../db');
+jest.mock('../services/db');
 
 // Mocking the JWT library
 jest.mock('jsonwebtoken');

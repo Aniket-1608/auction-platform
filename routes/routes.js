@@ -4,7 +4,7 @@ const itemsController = require('../controllers/itemsController');
 const userController = require('../controllers/userController');
 const bidsController = require('../controllers/bidsController');
 const notificationController = require('../controllers/notificationsController');
-const authenticateUser = require('../middleware/authenticateUser'); 
+const authenticateUser = require('../middleware/authenticateUser');
 const upload = require('../services/upload');
 const multer = require('multer');
 
@@ -21,14 +21,14 @@ router.delete('/items/:id', (checkRole('admin') || checkRole('user')), itemsCont
 //routes for users
 router.post('/users/register/', userController.registerUser);
 router.post('/users/login/', userController.loginUser);
-router.get('/users/profile/', authenticate, userController.getProfile);
+router.get('/users/profile/', (checkRole('admin') || checkRole('user')), userController.getProfile);
 
 // routes for bids
 router.get('/items/:itemid/bids/', bidsController.getItemBids);
 router.post('/items/:itemid/bids/', (checkRole('admin') || checkRole('user')), bidsController.placeItemBids);
 
 //route for notifications
-router.get('/notifications', authenticate, notificationController.getNotifications);
+router.get('/notifications', (checkRole('admin') || checkRole('user')), notificationController.getNotifications);
 router.post('/notifications/mark-read', notificationController.markNotifications);
 
 //route for search and filteration
