@@ -4,7 +4,7 @@ const { join } = require('node:path');
 const { Server } = require('socket.io');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-const itemsController = require('./controllers/itemsController');
+const itemsController = require('../controllers/itemsController');
 const path = require('path');
 // Store user IDs and their corresponding socket IDs
 const userSockets = new Map();
@@ -21,7 +21,7 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 
 //Routes
-const itemsRoutes = require('./routes/routes');
+const itemsRoutes = require('../routes/routes');
 app.use('/api', itemsRoutes);
 
 

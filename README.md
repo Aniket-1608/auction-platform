@@ -217,7 +217,7 @@ To run the tests, use the following command:
 
 ```bash
 
-npx jest --detectOpenHandles
+npm test
 
 ```
 

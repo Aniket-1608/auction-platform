@@ -7,7 +7,6 @@ const notificationController = require('../controllers/notificationsController')
 const authenticateUser = require('../middleware/authenticateUser');
 const multer = require('multer');
 
-const authenticate = authenticateUser.authenticateToken;
 const checkRole = authenticateUser.checkRole;
 
 // routes for items
