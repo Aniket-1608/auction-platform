@@ -5,9 +5,9 @@ const { Server } = require('socket.io');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const itemsController = require('./controllers/itemsController');
-// Store user IDs and their corresponding socket IDs
-const userSockets = new Map(); 
 const path = require('path');
+// Store user IDs and their corresponding socket IDs
+const userSockets = new Map();
 
 dotenv.config();
 
@@ -24,15 +24,14 @@ app.use(bodyParser.json());
 const itemsRoutes = require('./routes/routes');
 app.use('/api', itemsRoutes);
 
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', (req, res) => {
-    res.sendFile(join(__dirname, 'index.html'));
+// route for static pages
+app.get('/index', (req, res) => {
+    res.sendFile(join(__dirname, '/public/index.html'));
 });
 
-app.get('/api', (req, res) => {
-    res.sendFile(join(__dirname, 'imageUpload.html'));
+app.get('/imageupload', (req, res) => {
+    res.sendFile(join(__dirname, '/public/imageUpload.html'));
 });
 
 io.on('connection', (socket) => {
@@ -50,21 +49,21 @@ io.on('connection', (socket) => {
 
         // Retrieve owner ID from the database
         itemsController.getItemOwner(bid.item_id)
-        .then(ownerId => {
-            console.log('Retrieved owner ID from the database:', ownerId);
+            .then(ownerId => {
+                console.log('Retrieved owner ID from the database:', ownerId);
 
-            // Check if owner is connected
-            if (userSockets.has(ownerId)) {
-                // when a new bid is placed send a notification to the user
-                console.log('getting owner connection status!');
-                const ownerSocketId = userSockets.get(ownerId);
-                io.to(ownerSocketId).emit('notification', { message: 'New bid on your item', bid: bid });
-                console.log(ownerSocketId);
-            }
-        })
-        .catch(error => {
-            console.error('Error retrieving owner ID:', error);
-        });
+                // Check if owner is connected
+                if (userSockets.has(ownerId)) {
+                    // when a new bid is placed send a notification to the user
+                    console.log('getting owner connection status!');
+                    const ownerSocketId = userSockets.get(ownerId);
+                    io.to(ownerSocketId).emit('notification', { message: 'New bid on your item', bid: bid });
+                    console.log(ownerSocketId);
+                }
+            })
+            .catch(error => {
+                console.error('Error retrieving owner ID:', error);
+            });
     })
 
     socket.on('chat message', (msg) => {
@@ -72,7 +71,7 @@ io.on('connection', (socket) => {
         console.log('message: ' + msg);
     });
 
-    socket.on('disconnect', ()=> {
+    socket.on('disconnect', () => {
         console.log('user disconnected!');
         // Remove the socket from the userSockets map
         userSockets.forEach((value, key) => {

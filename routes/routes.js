@@ -5,7 +5,6 @@ const userController = require('../controllers/userController');
 const bidsController = require('../controllers/bidsController');
 const notificationController = require('../controllers/notificationsController');
 const authenticateUser = require('../middleware/authenticateUser');
-const upload = require('../services/upload');
 const multer = require('multer');
 
 const authenticate = authenticateUser.authenticateToken;
@@ -38,14 +37,17 @@ router.post('/items/search', itemsController.searchItem);
 router.post('/items/pages', itemsController.getAllItemsPagination);
 
 //route to find the owner of the item.
-router.get('items/owner', itemsController.getItemOwner);
+router.get('/items/owner', itemsController.getItemOwner);
+
 
 //route for image uploads
-router.post('/uploads', upload.upload.single('profile-file'), (req, res) => {
+const upload = multer({ dest: './uploads/' })
+router.post('/uploads', upload.single('uploaded_file'), (req, res) => {
     // Check if req.file contains the file
     if (!req.file) {
         return res.status(403).json({ message: 'File not uploaded! Please attach only jpeg/png file under 5 MB.' });
     }
+    console.log(req.file, req.body);
     res.status(201).json({ message: 'File uploaded successfully.', file: req.file });
 });
 

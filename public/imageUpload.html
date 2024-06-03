@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval';">
+
+<head>
+    <title>Profile form</title>
+</head>
+
+<body>
+    <form method="POST" action="/api/uploads" enctype="multipart/form-data">
+        <div class="form-group">
+            <input type="file" class="form-control-file" name="uploaded_file">
+            <input type="submit" value="Upload" class="btn btn-default">
+        </div>
+    </form>
+
+</body>
+
+</html>
