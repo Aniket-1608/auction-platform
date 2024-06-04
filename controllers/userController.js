@@ -57,7 +57,7 @@ exports.loginUser = async (req, res) => {
             const user = results[0];
 
             //Check the role of the user
-            if (user._role !== role) {
+            if (user._role != role) {
                 return res.status(403).json({
                     message: "Please make sure you are logging in from the right portal.",
                     success: false,

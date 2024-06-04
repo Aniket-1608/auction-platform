@@ -5,6 +5,7 @@ const userController = require('../controllers/userController');
 const bidsController = require('../controllers/bidsController');
 const notificationController = require('../controllers/notificationsController');
 const authenticateUser = require('../middleware/authenticateUser');
+const passwordReset = require('../controllers/passwordReset');
 const multer = require('multer');
 
 const checkRole = authenticateUser.checkRole;
@@ -37,6 +38,10 @@ router.post('/items/pages', itemsController.getAllItemsPagination);
 
 //route to find the owner of the item.
 router.get('/items/owner', itemsController.getItemOwner);
+
+//route to reset password
+router.post('/users/forgotpassword', passwordReset.forgotPassword);
+router.post('/users/resetpassword', passwordReset.resetPassword);
 
 
 //route for image uploads
