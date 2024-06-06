@@ -228,7 +228,7 @@ describe('Items API Endpoints', () => {
       const owner_id = 2; // Different owner_id to simulate mismatch
 
       db.query.mockImplementationOnce((query, values, callback) => {
-        callback(null, [{ owner_id: 1 }]);
+        callback(null, [{ owner_id: 2 }]);
       });
 
       const response = await request(app)
@@ -236,6 +236,7 @@ describe('Items API Endpoints', () => {
         .set('Authorization', `Bearer ${validToken}`) // Set the authorization header
         .send({ owner_id });
 
+      console.log(response.body);
       expect(response.status).toBe(403);
       expect(response.body).toEqual({ message: 'Owner Mismatch. You are not allowed to delete the item.' });
     });

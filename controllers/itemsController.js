@@ -2,8 +2,8 @@ const db = require('../services/db');
 
 exports.getAllItems = (req, res) => {
     db.query('SELECT * FROM items', (error, results) => {
-        if(error){
-            return res.status(500).json({error: error.message});
+        if (error) {
+            return res.status(500).json({ error: error.message });
         }
         res.status(200).json(results);
     });
@@ -12,26 +12,27 @@ exports.getAllItems = (req, res) => {
 exports.getItemById = (req, res) => {
     const id = req.params.id;
     db.query('SELECT * FROM items WHERE id = ?', [id], (error, results) => {
-        if(error){
-            return res.status(500).json({error: error.message});
+        if (error) {
+            return res.status(500).json({ error: error.message });
         }
-        if(results.length === 0) {
-            return res.status(404).json({message: "Items not found"});
+        if (results.length === 0) {
+            return res.status(404).json({ message: "Items not found" });
         }
         res.status(200).json(results[0]);
     });
 };
 
 exports.createItem = (req, res) => {
-    const { id, name, description, starting_price, image_url, end_time, owner_id } = req.body;
+    const { id, name, description, starting_price, image_url, end_time } = req.body;
+    const owner_id = req.user.id;
     const query = 'INSERT INTO items (id, name, description, starting_price, image_url, end_time, owner_id) VALUES (? ,? ,?, ?, ?, ?, ?)';
     const values = [id, name, description, starting_price, image_url, end_time, owner_id];
 
     db.query(query, values, (error, results) => {
-        if(error){
-            return res.status(500).json({error: error.message});
+        if (error) {
+            return res.status(500).json({ error: error.message });
         }
-        res.status(201).json({id: results.insertId, ...req.body});
+        res.status(201).json({ id: results.insertId, ...req.body });
     });
 };
 
@@ -75,8 +76,8 @@ exports.updateItem = (req, res) => {
 
 exports.deleteItem = (req, res) => {
     const id = req.params.id;
-    const owner_id = req.body.owner_id;
-
+    const owner_id = req.user.id;
+    console.log(owner_id);
     // First, fetch the item to check the owner
     db.query('SELECT owner_id FROM items WHERE id = ?', [id], (error, results) => {
         if (error) {
@@ -91,7 +92,7 @@ exports.deleteItem = (req, res) => {
         }
 
         // Owner matches, proceed to delete the item
-        db.query('DELETE FROM items WHERE id = ?', [id], (error, results) => {
+        db.query('DELETE FROM items WHERE id = ?', [id], (error) => {
             if (error) {
                 return res.status(500).json({ error: error.message });
             }
@@ -103,7 +104,7 @@ exports.deleteItem = (req, res) => {
 // Search and filter for auction items
 exports.searchItem = (req, res) => {
     let { startingPrice, endTime } = req.body;
-    
+
     // Initialize SQL query and values array
     let query = 'SELECT * FROM items WHERE 1=1';
     let values = [];
@@ -112,7 +113,7 @@ exports.searchItem = (req, res) => {
         query += ' AND starting_price >= ?';
         values.push(startingPrice);
     }
-    
+
     if (endTime) {
         query += ' AND end_time > ?';
         values.push(endTime);
@@ -142,18 +143,3 @@ exports.getAllItemsPagination = (req, res) => {
     });
 };
 
-//get item owner
-exports.getItemOwner = (itemId) => {
-    return new Promise((resolve, reject) => {
-        const query = 'SELECT * FROM items WHERE id = ?';
-        db.query(query, [itemId], (error, results) => {
-            if (error) {
-                reject(error);
-            } else if (results.length === 0) {
-                reject(new Error('Item not found'));
-            } else {
-                resolve(results[0].owner_id);
-            }
-        });
-    });
-};

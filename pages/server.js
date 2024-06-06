@@ -4,8 +4,8 @@ const { join } = require('node:path');
 const { Server } = require('socket.io');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-const itemsController = require('../controllers/itemsController');
-const path = require('path');
+const axios = require('axios');
+
 // Store user IDs and their corresponding socket IDs
 const userSockets = new Map();
 
@@ -15,7 +15,6 @@ dotenv.config();
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
-const port = process.env.PORT || 3000;
 
 //middleware
 app.use(bodyParser.json());
@@ -24,52 +23,94 @@ app.use(bodyParser.json());
 const itemsRoutes = require('../routes/routes');
 app.use('/api', itemsRoutes);
 
+// token for authorization for one of the users that is already registered and logged in.
+const authToken = process.env.AUTH_TOKEN;
 
 // route for static pages
 app.get('/index', (req, res) => {
-    res.sendFile(join(__dirname, '/public/index.html'));
+    res.sendFile(join(__dirname, '..', '/public/index.html'));
 });
 
 app.get('/imageupload', (req, res) => {
-    res.sendFile(join(__dirname, '/public/imageUpload.html'));
+    res.sendFile(join(__dirname, '..', '/public/imageUpload.html'));
 });
 
 io.on('connection', (socket) => {
-    console.log('a user connected!');
+    /* 
+    When the io makes a connection, the user will be redirected to log in, after the user logs in then only the user will be able to place a bid on the platform.
+    */
 
-    // Assuming user ID is sent after connection for identification
-    socket.on('register', (userId) => {
-        userSockets.set(userId, socket.id);
-        console.log(`User ${userId} registered with socket ID ${socket.id}`);
-    });
+    console.log('a new user connected!');
 
-    socket.on('place bid', (bid) => {
-        console.log('New bid placed: ', bid);
-        io.emit('new bid', bid);
+    socket.on('place bid', async (bid) => {
+
+        const itemid = bid.item_id;
+        const bidamount = bid.bid_amount;
+        var userid = 0;
+
+        // send the axios post request to add bid to the database
+        await axios.post(`http://localhost:3000/api/items/${itemid}/bids`, { bidamount: bidamount }, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        })
+            .then(async (response) => {
+                const userId = await response.data.userid;
+                userid = userId;
+
+                if (!userSockets.has(userid)) {
+                    userSockets.set(userid, socket.id);
+                    console.log(`User ${userid} registered with socket ID ${socket.id}`);
+                }
+                console.log(response.data);
+            })
+            .catch(error => {
+                console.log(error);
+            });
+
+        const newBid = { item_id: bid.item_id, user_id: userid, bid_amount: bid.bid_amount };
+        io.emit('new bid', newBid);
 
         // Retrieve owner ID from the database
-        itemsController.getItemOwner(bid.item_id)
-            .then(ownerId => {
+        await axios.get(`http://localhost:3000/api/items/${itemid}`)
+            .then(async (response) => {
+                const ownerId = await response.data.owner_id;
                 console.log('Retrieved owner ID from the database:', ownerId);
 
+                // add notification to the database
+                const userid = ownerId;
+                const message = `New bid placed on item id: ${bid.item_id} by user id: ${userid} of amount: ${bid.bid_amount}`;
+
+                await axios.post(`http://localhost:3000/api/notifications`, { userid: userid, message: message }, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                })
+                    .then(async (response) => {
+                        const data = await response.data.message;
+                        console.log(data);
+                    })
+                    .catch(error => {
+                        console.log('Error adding notification to the database!', error);
+                    });
+
                 // Check if owner is connected
+                console.log('getting owner connection status!');
+
                 if (userSockets.has(ownerId)) {
                     // when a new bid is placed send a notification to the user
-                    console.log('getting owner connection status!');
+                    console.log('Owner is connected');
                     const ownerSocketId = userSockets.get(ownerId);
                     io.to(ownerSocketId).emit('notification', { message: 'New bid on your item', bid: bid });
-                    console.log(ownerSocketId);
+                } else {
+                    console.log('Owner is disconnected!')
                 }
             })
             .catch(error => {
                 console.error('Error retrieving owner ID:', error);
             });
-    })
 
-    socket.on('chat message', (msg) => {
-        io.emit('chat message', msg);
-        console.log('message: ' + msg);
-    });
+    })
 
     socket.on('disconnect', () => {
         console.log('user disconnected!');

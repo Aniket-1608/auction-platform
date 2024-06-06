@@ -44,7 +44,7 @@ exports.registerUser = async (req, res) => {
 //login the registered user
 exports.loginUser = async (req, res) => {
     try {
-        const { username, password, role } = req.body;
+        const { username, password } = req.body;
 
         const query = 'SELECT * FROM users WHERE username = ?';
         db.query(query, [username], async (error, results) => {
@@ -56,14 +56,6 @@ exports.loginUser = async (req, res) => {
             }
             const user = results[0];
 
-            //Check the role of the user
-            if (user._role != role) {
-                return res.status(403).json({
-                    message: "Please make sure you are logging in from the right portal.",
-                    success: false,
-                });
-            }
-
             //compare the provided password with the hashed password in the database
             const isMatch = await bcrypt.compare(password, user._password);
             if (!isMatch) {
@@ -73,6 +65,7 @@ exports.loginUser = async (req, res) => {
             //call the function to generate JWT token
             const token = generateAccessToken(user);
 
+            // res.session.token = token;
             res.status(200).json({ token });
         });
     } catch (error) {

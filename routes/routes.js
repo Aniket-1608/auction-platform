@@ -13,22 +13,23 @@ const checkRole = authenticateUser.checkRole;
 // routes for items
 router.get('/items/', itemsController.getAllItems);
 router.get('/items/:id', itemsController.getItemById);
-router.post('/items/', (checkRole('admin') || checkRole('user')), itemsController.createItem);
-router.put('/items/:id', (checkRole('admin') || checkRole('user')), itemsController.updateItem);
-router.delete('/items/:id', (checkRole('admin') || checkRole('user')), itemsController.deleteItem);
+router.post('/items/', checkRole(['admin', 'user']), itemsController.createItem);
+router.put('/items/:id', checkRole(['admin', 'user']), itemsController.updateItem);
+router.delete('/items/:id', checkRole(['admin', 'user']), itemsController.deleteItem);
 
 //routes for users
 router.post('/users/register/', userController.registerUser);
 router.post('/users/login/', userController.loginUser);
-router.get('/users/profile/', (checkRole('admin') || checkRole('user')), userController.getProfile);
+router.get('/users/profile/', checkRole(['admin', 'user']), userController.getProfile);
 
 // routes for bids
 router.get('/items/:itemid/bids/', bidsController.getItemBids);
-router.post('/items/:itemid/bids/', (checkRole('admin') || checkRole('user')), bidsController.placeItemBids);
+router.post('/items/:itemid/bids/', checkRole(['admin', 'user']), bidsController.placeItemBids);
 
 //route for notifications
-router.get('/notifications', (checkRole('admin') || checkRole('user')), notificationController.getNotifications);
-router.post('/notifications/mark-read', notificationController.markNotifications);
+router.get('/notifications', checkRole(['admin', 'user']), notificationController.getNotifications);
+router.post('/notifications/mark-read', checkRole(['admin', 'user']), notificationController.markNotifications);
+router.post('/notifications', notificationController.addUserNotifications);
 
 //route for search and filteration
 router.post('/items/search', itemsController.searchItem);
@@ -36,13 +37,9 @@ router.post('/items/search', itemsController.searchItem);
 //route for items pagination
 router.post('/items/pages', itemsController.getAllItemsPagination);
 
-//route to find the owner of the item.
-router.get('/items/owner', itemsController.getItemOwner);
-
 //route to reset password
 router.post('/users/forgotpassword', passwordReset.forgotPassword);
 router.post('/users/resetpassword', passwordReset.resetPassword);
-
 
 //route for image uploads
 const upload = multer({ dest: './uploads/' })

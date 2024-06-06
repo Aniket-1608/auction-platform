@@ -69,7 +69,7 @@ describe('Notifications API Endpoints', () => {
     describe('POST /api/notifications/mark-read', () => {
         it('should mark notifications as read', async () => {
             const notificationIds = [1, 2];
-            const mockResult = { affectedRows: notificationIds.length };
+            // const mockResult = { affectedRows: notificationIds.length };
 
             db.query.mockImplementationOnce((query, values, callback) => {
                 callback(null, { affectedRows: notificationIds.length });
@@ -77,6 +77,7 @@ describe('Notifications API Endpoints', () => {
 
             const response = await request(app)
                 .post('/api/notifications/mark-read')
+                .set('Authorization', `Bearer ${validToken}`) // Set the authorization header
                 .send({ notificationIds });
 
             // console.log(response.body);
@@ -88,6 +89,7 @@ describe('Notifications API Endpoints', () => {
         it('should return 400 for invalid notification IDs', async () => {
             const response = await request(app)
                 .post('/api/notifications/mark-read')
+                .set('Authorization', `Bearer ${validToken}`)
                 .send({ notificationIds: [] });
 
             expect(response.status).toBe(400);
@@ -103,6 +105,7 @@ describe('Notifications API Endpoints', () => {
 
             const response = await request(app)
                 .post('/api/notifications/mark-read')
+                .set('Authorization', `Bearer ${validToken}`)
                 .send({ notificationIds });
 
             expect(response.status).toBe(500);

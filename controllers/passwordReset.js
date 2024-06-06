@@ -5,9 +5,9 @@ const nodemailer = require('nodemailer');
 const myEmail = process.env.MY_EMAIL;
 const myPassword = process.env.MY_PASSWORD;
 //send otp via mail
-exports.forgotPassword = (req, res, next) => {
+exports.forgotPassword = (req, res) => {
     try {
-        const { username, email } = req.body;
+        const { email } = req.body;
 
         const query = 'SELECT * FROM users WHERE email = ?';
 
@@ -19,7 +19,7 @@ exports.forgotPassword = (req, res, next) => {
                 return res.status(401).json({ error: 'Invalid Email!' });
             }
 
-            const user = results[0];
+            // const user = results[0];
             const otp = Math.floor(1000 + Math.random() * 9000);
             const otpExpires = new Date();
             otpExpires.setMinutes(otpExpires.getMinutes() + 5);
@@ -29,7 +29,7 @@ exports.forgotPassword = (req, res, next) => {
             const updateQuery = 'UPDATE users SET otp = ?, otp_expire_time = ? WHERE email = ?';
             const values = [otp, otpExpires, email];
 
-            db.query(updateQuery, values, (error, results) => {
+            db.query(updateQuery, values, (error) => {
                 if (error) {
                     return res.status(500).json({ error: error.message });
                 }
@@ -49,7 +49,7 @@ exports.forgotPassword = (req, res, next) => {
                     text: `Your One Time Password (OTP) for Forgot Password recovery on Auction Platform is ${otp}.`
                 };
 
-                transporter.sendMail(mailOptions, (error, results) => {
+                transporter.sendMail(mailOptions, (error) => {
                     if (error) {
                         return res.status(500).json({ error: error.message });
                     }
@@ -110,7 +110,7 @@ exports.resetPassword = async (req, res) => {
                     text: `You have successfully reset your password.`
                 };
 
-                transporter.sendMail(mailOptions, (error, results) => {
+                transporter.sendMail(mailOptions, (error) => {
                     if (error) {
                         return res.status(500).json({ error: error.message });
                     }
